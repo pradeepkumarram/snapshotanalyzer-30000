@@ -14,7 +14,35 @@ def filter_instances(project):
         instances = ec2.instances.all()
     return instances
 
+
 @click.group()
+def cli():
+    "Managing snapshots"
+
+@cli.group('volumes')
+def volumes():
+    """ Commands for Volumes """
+
+@volumes.command('list')
+@click.option('--project', default=None, help='Only volumes for project (tag Project:<name>)')
+def list_volumes(project):
+    "List Volumes"
+
+    instances = filter_instances(project)
+
+    for i in instances:
+        for v in i.volumes.all():
+            print(', '.join((
+                v.id,
+                i.id,
+                v.state,
+                str(v.size) + 'GiB',
+                v.encrypted and 'Encrypted' or 'Non encrypted'
+            ))
+            )
+    return
+
+@cli.group('instances')
 def instances():
     """ Commands for instances """
 
@@ -65,4 +93,4 @@ def start_instances(project):
     return
 
 if __name__ == '__main__':
-        instances()
+        cli()
