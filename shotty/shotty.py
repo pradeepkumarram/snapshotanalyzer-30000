@@ -19,6 +19,44 @@ def filter_instances(project):
 def cli():
     "Managing snapshots"
 
+@cli.group('snapshots')
+def snapshots():
+    """ Commands for snapshots """
+
+@snapshots.command('snapshot')
+@click.option('--project', default=None, help='Create snapshots')
+def create_snapshot(project):
+    "Create snapshots"
+    instances = filter_instances(project)
+
+    for i in instances:
+        i.stop()
+        for v in i.volumes.all():
+            v.create_snapshot(Description='Created by snapshot anlyzer 30000')
+
+    return
+
+@snapshots.command('list')
+@click.option('--project', default=None, help='Only snapshots for project (tag Project:<name>)')
+def snapshots(project):
+    "List snapshots"
+
+    instances = filter_instances(project)
+
+    for i in instances:
+        for v in i.volumes.all():
+            for s in v.snapshots.all():
+                print(','. join((
+                    s.id,
+                    v.id,
+                    i.id,
+                    s.state,
+                    s.progress,
+                    s.start_time.strftime('%c')
+
+                )))
+    return
+
 @cli.group('volumes')
 def volumes():
     """ Commands for Volumes """
